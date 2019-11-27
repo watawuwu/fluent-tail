@@ -9,26 +9,23 @@ name := fluent_tail
 
 # Option
 #===============================================================
-SHELL                   := /bin/bash
-LOG_LEVEL               := debug
-PREFIX                  := $(HOME)/.cargo
-LOG                     := $(shell echo '$(name)' | tr - _)=$(LOG_LEVEL)
-TARGET                  := x86_64-apple-darwin
-CARGO_BIN               := cross
+SHELL                   ?= /bin/bash
+PREFIX                  ?= $(HOME)/.cargo
+LOG_LEVEL               ?= debug
+LOG                     ?= $(shell echo '$(name)' | tr - _)=$(LOG_LEVEL)
+TARGET                  ?= x86_64-apple-darwin
+CARGO_BIN               ?= cross
 ifneq (,$(findstring mingw64, $(OS)))
-    CARGO_BIN := cargo
+    CARGO_BIN ?= cargo
 endif
-ifneq (,$(findstring darwin￿￿, $(OS)))
-    CARGO_BIN := cargo
-endif
-ifeq (,$(shell command -v cross 2> /dev/null))
-    CARGO_BIN := cargo
+ifneq (,$(findstring darwin, $(OS)))
+    CARGO_BIN ?= cargo
 endif
 CARGO_OPTIONS           :=
 CARGO_SUB_OPTIONS       := --target $(TARGET)
 CARGO_COMMAND           := $(CARGO_BIN) $(CARGO_OPTIONS)
-CONTAINER_REPO          := watawuwu/fluent-tail
-CONTAINER_TAG           := latest
+CONTAINER_REPO          ?= watawuwu/fluent-tail
+CONTAINER_TAG           ?= latest
 APP_ARGS                :=
 
 # Environment
@@ -43,6 +40,7 @@ deps: ## Install depend tools
 	rustup component add rustfmt
 	rustup component add clippy
 	rustup show # for container
+	cargo install cross
 
 dev-deps: ## Install dev depend tools
 	rustup component add rust-src

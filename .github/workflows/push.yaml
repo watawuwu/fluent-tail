@@ -1,0 +1,45 @@
+name: Rust
+
+on:
+  push:
+    branches-ignore:
+    - "test/*"
+    paths-ignore:
+    - README.md
+    - install.sh
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    env:
+      RUSTUP_TOOLCHAIN: stable
+      NAME: fluent-tail
+      TARGET: ${{ matrix.target }}
+
+    strategy:
+      matrix:
+        target: [x86_64-apple-darwin, x86_64-unknown-linux-musl, x86_64-unknown-linux-gnu]
+        include:
+        - target: x86_64-apple-darwin
+          os: macos-latest
+        - target: x86_64-unknown-linux-musl
+          os: ubuntu-latest
+        - target: x86_64-unknown-linux-gnu
+          os: ubuntu-latest
+
+    steps:
+    - name: Setup Rust
+      uses: hecrj/setup-rust-action@master
+      with:
+        targets: ${{ matrix.target }}
+    - name: Checkout
+      uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Install dependencies
+      run: |
+        make deps
+    - name: Run tests
+      run: |
+        make test4ci
