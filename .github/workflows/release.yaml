@@ -1,0 +1,65 @@
+name: Release
+
+on: release
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    env:
+      RUSTUP_TOOLCHAIN: stable
+      NAME: fluent-tail
+      TARGET: ${{ matrix.target }}
+
+    strategy:
+      matrix:
+        target: [x86_64-apple-darwin, x86_64-unknown-linux-musl, x86_64-unknown-linux-gnu]
+        include:
+        - target: x86_64-apple-darwin
+          os: macos-latest
+        - target: x86_64-unknown-linux-musl
+          os: ubuntu-latest
+        - target: x86_64-unknown-linux-gnu
+          os: ubuntu-latest
+
+    env:
+      RUSTUP_TOOLCHAIN: stable
+      NAME: fluent-tail
+      TAG: ${{ github.ref }}
+
+    steps:
+    - name: Setup Rust
+      uses: hecrj/setup-rust-action@master
+      with:
+        targets: ${{ matrix.targets || '' }}
+    - name: Checkout
+      uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Install dependencies
+      run: |
+        make deps
+    - name: Build
+      run: |
+        make release-build
+        tar czf ${NAME}-${TAG}-${TARGET}.tar.gz -C target/${TARGET}/release ${NAME}
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1.0.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+    - name: Upload Release Asset
+      id: upload-release-asset
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${NAME}-${TAG}-${TARGET}.tar.gz
+        asset_name: ${NAME}-${TAG}-${TARGET}.tar.gz
+        asset_content_type: application/gzip

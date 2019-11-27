@@ -12,7 +12,7 @@ keywords    = [""]
 categories  = ["command-line-utilities"]
 
 [[bin]]
-name = "fluent_tail"
+name = "fluent-tail"
 path = "src/main.rs"
 
 [badges]
